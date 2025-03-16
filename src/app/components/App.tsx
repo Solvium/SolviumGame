@@ -5,7 +5,7 @@ import Script from "next/script";
 import { useEffect } from "react";
 import { WalletProvider } from "../hooks/useNearWallet.context";
 
-const manifestUrl = "https://solvium-game.vercel.app/tonconnect-manifest.json";
+const manifestUrl = "https://solvium.xyz/tonconnect-manifest.json";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },

@@ -62,7 +62,7 @@ export default function DepositMultiplier({ user }: any) {
   //     return () => clearInterval(pollInterval);
   //   }, [refetch]);
 
-  console.log(nearDeposits, "nearDeposits");
+  // console.log(nearDeposits, "nearDeposits");
 
   const getDeposits = (): Deposit[] => {
     if (walletType === "TON") {
@@ -101,7 +101,7 @@ export default function DepositMultiplier({ user }: any) {
   // Update currentDeposits type
   const currentDeposits = getDeposits();
 
-  console.log(currentDeposits, "firstDeposit");
+  // console.log(currentDeposits, "firstDeposit");
   const isLoading = walletType === "NEAR" ? nearLoading : false;
 
   const isConnected = walletType === "NEAR" ? nearConnected : false; // Add TON connection check

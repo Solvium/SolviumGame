@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import copy from "./../assets/userProfile/copy.svg";
-// import { CopyToClipboard } from "react-copy-to-clipboard";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import WebApp from "@twa-dev/sdk";
 import axios from "axios";
 import { FaFacebook, FaXTwitter, FaTelegram, FaYoutube } from "react-icons/fa6";
@@ -151,17 +151,17 @@ const Link = ({ userDetails }: any) => {
         <div className="absolute inset-0 bg-[#4C6FFF] blur-2xl opacity-5"></div>
         <div className="relative">
           <p className="text-sm text-[#8E8EA8] break-all text-center md:text-left mb-3">
-            {`https://t.me/Solvium_bot?start=${userDetails?.username}`}
+            {`https://solvium.xyz?ref=${userDetails?.username}`}
           </p>
-          {/* <CopyToClipboard
-            text={`https://t.me/Solvium_bot?start=${userDetails?.username}`}
+          <CopyToClipboard
+            text={`https://solvium.xyz?ref=${userDetails?.username}`}
             onCopy={() => setCopyState("Copied")}
-          > */}
-          <button className="w-full px-4 py-3 bg-[#4C6FFF] hover:bg-[#4C6FFF]/90 text-white rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium">
-            <span>{copyState}</span>
-            <img src={copy.src} alt="copy" className="w-4 h-4 invert" />
-          </button>
-          {/* </CopyToClipboard> */}
+          >
+            <button className="w-full px-4 py-3 bg-[#4C6FFF] hover:bg-[#4C6FFF]/90 text-white rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium">
+              <span>{copyState}</span>
+              <img src={copy.src} alt="copy" className="w-4 h-4 invert" />
+            </button>
+          </CopyToClipboard>
         </div>
       </div>
     </div>
@@ -364,81 +364,75 @@ const Tasks = ({
     setLoading({ id: data.id, status: true });
     setError("");
 
-    console.log(type);
-    if (type != "") {
-      if (data.name.includes("Join Solvium Telegram Group")) {
-        try {
-          const response = await axios.get(
-            `https://api.telegram.org/bot7858122446:AAEwouIyKmFuF5vnxpY4FUNY6r4VIEMtWH0/getChatMember?chat_id=@solvium_puzzle&user_id=${userDetails.chatId}`
-          );
+    if (data.name.includes("Join Solvium Telegram Group")) {
+      try {
+        const response = await axios.get(
+          `https://api.telegram.org/bot7858122446:AAEwouIyKmFuF5vnxpY4FUNY6r4VIEMtWH0/getChatMember?chat_id=@solvium_puzzle&user_id=${userDetails.chatId}`
+        );
 
-          console.log(response);
-          if (response.data.result.user.username == userDetails.username) {
-            if (response.data.result.status == "member") {
-              sendComplete(data);
-              return;
-            } else {
-              setError("You have not Joined Group yet!");
-              setLoading({ id: data.id, status: false });
-              setTimeout(() => {
-                data.link && tg?.openLink(data.link);
-              }, 2000);
-              return;
-            }
+        console.log(response);
+        if (response.data.result.user.username == userDetails.username) {
+          if (response.data.result.status == "member") {
+            sendComplete(data);
+            return;
           } else {
-            setError("An error occurred, Please try again!");
+            setError("You have not Joined Group yet!");
             setLoading({ id: data.id, status: false });
+            setTimeout(() => {
+              data.link && tg?.openLink(data.link);
+            }, 2000);
             return;
           }
-        } catch (error) {
+        } else {
           setError("An error occurred, Please try again!");
           setLoading({ id: data.id, status: false });
           return;
         }
+      } catch (error) {
+        setError("An error occurred, Please try again!");
+        setLoading({ id: data.id, status: false });
+        return;
       }
+    }
 
-      if (data.name.includes("Join Solvium Chat")) {
-        try {
-          const response = await axios.get(
-            `https://api.telegram.org/bot7858122446:AAEwouIyKmFuF5vnxpY4FUNY6r4VIEMtWH0/getChatMember?chat_id=@solviumupdate&user_id=${userDetails.chatId}`
-          );
+    if (data.name.includes("Join Solvium Chat")) {
+      try {
+        const response = await axios.get(
+          `https://api.telegram.org/bot7858122446:AAEwouIyKmFuF5vnxpY4FUNY6r4VIEMtWH0/getChatMember?chat_id=@solviumupdate&user_id=${userDetails.chatId}`
+        );
 
-          console.log(response);
-          if (response.data.result.user.username == userDetails.username) {
-            if (response.data.result.status == "member") {
-              sendComplete(data);
-              return;
-            } else {
-              setError("You have not Joined Group yet!");
-              setLoading({ id: data.id, status: false });
-              setTimeout(() => {
-                data.link && tg?.openLink(data.link);
-              }, 2000);
-              return;
-            }
+        console.log(response);
+        if (response.data.result.user.username == userDetails.username) {
+          if (response.data.result.status == "member") {
+            sendComplete(data);
+            return;
           } else {
-            setError("An error occurred, Please try again!");
+            setError("You have not Joined Group yet!");
             setLoading({ id: data.id, status: false });
+            setTimeout(() => {
+              data.link && tg?.openLink(data.link);
+            }, 2000);
             return;
           }
-        } catch (error) {
+        } else {
           setError("An error occurred, Please try again!");
           setLoading({ id: data.id, status: false });
           return;
         }
+      } catch (error) {
+        setError("An error occurred, Please try again!");
+        setLoading({ id: data.id, status: false });
+        return;
       }
+    }
 
-      if (data.name.includes("connect wallet")) {
-        if (nearAddress) sendComplete(data);
-        else {
-          setError("Kindly Connect Your Wallet");
-          setLoading({ id: data.id, status: false });
-          return;
-        }
+    if (data.name.includes("Connect Wallet")) {
+      if (nearAddress) sendComplete(data);
+      else {
+        setError("Kindly Connect Your Wallet");
+        setLoading({ id: data.id, status: false });
+        return;
       }
-
-      return;
-      sendComplete(data);
     }
 
     sendComplete(data);
@@ -515,8 +509,9 @@ const Tasks = ({
               }
             });
 
-          if (found) return <div key={task.name + "task"}> </div>;
-          if (task.points == 0) return <div key={task.name + "task"}> </div>;
+          if (found) return <div key={i + task.name + "task" + i}> </div>;
+          if (task.points == 0)
+            return <div key={task.name + task.id + "task" + i}> </div>;
 
           // const found = userDetails?.completedTasks?.find(
           //   (completedTask: any) =>
@@ -528,7 +523,7 @@ const Tasks = ({
 
           return (
             <div
-              key={task.name + "task"}
+              key={"bbb" + task.name + "task" + i}
               className="bg-[#1A1A2F] rounded-lg p-3 border border-[#2A2A45] relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-[#4C6FFF] blur-2xl opacity-5"></div>

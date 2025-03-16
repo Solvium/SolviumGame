@@ -157,7 +157,7 @@ export const Game = ({ claimPoints, userDetails }: any) => {
     setDisplayImg(curImg);
     let audio = new Audio("click.mp3");
 
-    const initialWidth = window.innerWidth - 50;
+    const initialWidth = window.innerWidth > 430 ? 430 : window.innerWidth - 50;
     const initialHeight = window.innerHeight / 2;
 
     const piecesX = userDetails.level + userDetails.difficulty;

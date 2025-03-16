@@ -254,9 +254,8 @@ const UnifiedWalletConnector = () => {
       {showNetworkModal && (
         <div className="fixed inset-0 p-4 bg-black bg-opacity-50 flex items-center justify-center z-[2500]">
           <div className="bg-[#010c18] p-6 rounded-lg border-2 border-blue-80">
-           <h3 className="text-xl text-white mb-4">Select Network</h3>
+            <h3 className="text-xl text-white mb-4">Select Network</h3>
             <div className="flex gap-4">
-          
               <button
                 onClick={() => handleNetworkSelect("NEAR")}
                 className="px-4 py-2 bg-blue-600 text-white rounded"

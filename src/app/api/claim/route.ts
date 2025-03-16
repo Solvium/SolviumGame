@@ -107,6 +107,57 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(res);
     }
 
+    if (type.includes("spin claim") && user) {
+      console.log(user);
+      const newDay =
+        new Date(Number(user?.lastSpinClaim) + 24 * 60 * 60 * 1000) <
+        new Date(Date.now());
+
+      console.log(
+        new Date(Number(user?.lastSpinClaim) + 24 * 60 * 60 * 1000),
+        new Date(Date.now())
+      );
+
+      if (user?.dailySpinCount <= 0 && !newDay)
+        return NextResponse.json("No Free spins available");
+      const res = await prisma.user.update({
+        where: {
+          username,
+        },
+
+        data: {
+          lastSpinClaim: new Date(Date.now()),
+          spinCount: {
+            increment: 1,
+          },
+          dailySpinCount: newDay ? 1 : user?.dailySpinCount - 1,
+        },
+      });
+
+      return NextResponse.json(res);
+    }
+
+    if (type.includes("buy spins")) {
+      const np = JSON.parse(type.split("--")[1]);
+
+      const res = await prisma.user.update({
+        where: {
+          username,
+        },
+
+        data: {
+          totalPoints: {
+            decrement: np.solvPrice,
+          },
+          dailySpinCount: {
+            increment: np.spinCount,
+          },
+        },
+      });
+
+      return NextResponse.json(res);
+    }
+
     if (type.includes("farm claim")) {
       const lastClaim = new Date(user?.lastClaim ?? Date.now());
       const nextClaim = new Date(new Date().getTime() + 1000 * 60 * 60 * 5);
@@ -116,7 +167,7 @@ export async function POST(req: NextRequest) {
 
         await addLeaderboard(
           user,
-          np * userMultipler >= 1 ? userMultipler : 1,
+          np * userMultipler >= 1 ? userMultipler : np,
           null
         );
 
@@ -141,7 +192,7 @@ export async function POST(req: NextRequest) {
 
       const res = await addLeaderboard(
         user,
-        np * userMultipler >= 1 ? userMultipler : 1,
+        np * userMultipler >= 1 ? userMultipler : np,
         "game"
       );
       return NextResponse.json(user, { status: 200 });
@@ -169,6 +220,8 @@ export async function GET(req: any) {
 const addLeaderboard = async (user: any, np: number, type: any) => {
   const userId = user.id;
   const points = np;
+
+  console.log(np);
   try {
     if (!userId || points === undefined) {
       return NextResponse.json(

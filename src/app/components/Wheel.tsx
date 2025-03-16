@@ -19,13 +19,14 @@ interface ClaimProps {
   onError?: (error: Error) => void;
 }
 
-const CountdownTimer = ({ targetTime }: { targetTime: number }) => {
+const CountdownTimer = ({ targetTime }: { targetTime: Date }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = Date.now();
-      const remaining = targetTime - now;
+      const now = new Date(Date.now());
+
+      const remaining = targetTime.getTime() - now.getTime();
       setTimeLeft(Math.max(0, remaining));
     }, 1000);
 
@@ -46,7 +47,13 @@ const CountdownTimer = ({ targetTime }: { targetTime: number }) => {
   );
 };
 
-export const WheelOfFortune = ({ user }: { user: any }) => {
+export const WheelOfFortune = ({
+  user,
+  claimPoints,
+}: {
+  user: any;
+  claimPoints: any;
+}) => {
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState(0);
   const [winner, setWinner] = useState("");
@@ -59,9 +66,11 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
 
   const [spinningSound, setSpinningSound] = useState(new Audio());
   const [isClaimLoading, setIsClaimLoading] = useState(false);
+  const [canClaim, setCanClaim] = useState(false);
+  const [buySpins, setBuySpins] = useState(false);
 
   const [lastPlayed, setLastPlayed] = useState<number | null>(null);
-  const [cooldownTime, setCooldownTime] = useState<number>(0);
+  const [cooldownTime, setCooldownTime] = useState<Date>(new Date());
   const {
     state: { selector, accountId: nearAddress, isConnected: nearConnected },
     connect: connectNear,
@@ -124,19 +133,22 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
     });
   };
 
+  // console.log(user);
   // Add useEffect to check last played time
   useEffect(() => {
     setSpinningSound(new Audio(location.origin + "/spin.mp3"));
-    const lastPlayedTime = localStorage.getItem("lastPlayedTime");
-    if (lastPlayedTime) {
-      setLastPlayed(Number(lastPlayedTime));
-      const now = Date.now();
-      const cooldownEnd = Number(lastPlayedTime) + 24 * 60 * 60 * 1000;
-      if (now < cooldownEnd) {
-        setHasPlayed(true);
-        setCooldownTime(cooldownEnd);
-      }
+    setLastPlayed(user.lastSpinClaim);
+    const now = new Date(Date.now());
+    const cooldownEnd = new Date(
+      new Date(user.lastSpinClaim).getTime() + 24 * 60 * 60 * 1000
+    );
+    console.log(now);
+    console.log(cooldownEnd);
+    if (now < cooldownEnd) {
+      setCooldownTime(cooldownEnd);
     }
+    if (user.dailySpinCount <= 0) setHasPlayed(true);
+    else setHasPlayed(false);
 
     const unclaimedPrize = localStorage.getItem("unclaimedPrize");
     const lastClaimedTime = localStorage.getItem("lastClaimed");
@@ -147,7 +159,7 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
       setUnclaimed(prize);
       setIsClaimed(false);
     }
-  }, []);
+  }, [user]);
 
   const handleClaimRewardImproved = async ({
     rewardAmount,
@@ -224,20 +236,21 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
 
   const handleSpinClick = () => {
     const now = Date.now();
-    if (lastPlayed && now - lastPlayed < 24 * 60 * 60 * 1000) {
-      return;
-    }
-    if (!nearConnected) {
-      alert("Kindly connect your wallet to continue!!");
-      return;
-    }
+    // if (lastPlayed && now - lastPlayed < 24 * 60 * 60 * 1000) {
+    //   return;
+    // }
+    // if (!nearConnected) {
+    //   alert("Kindly connect your wallet to continue!!");
+    //   return;
+    // }
+    claimPoints("spin claim", setCanClaim);
     const newPrizeNumber = Math.floor(Math.random() * data.length);
     setPrizeNumber(newPrizeNumber);
     setMustSpin(true);
     spinningSound.play();
-    setHasPlayed(true);
+    // setHasPlayed(true);
     setLastPlayed(now);
-    setCooldownTime(now + 24 * 60 * 60 * 1000);
+    setCooldownTime(new Date(now + 24 * 60 * 60 * 1000));
     localStorage.setItem("lastPlayedTime", now.toString());
   };
 
@@ -279,6 +292,7 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
         rewardAmount: data[prizeNumber].option,
         onSuccess: () => {
           setIsClaimed(true);
+
           localStorage.setItem("lastClaimed", Date.now().toString());
           localStorage.removeItem("unclaimedPrize");
           setIsClaimLoading(false);
@@ -297,16 +311,22 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
     }
   };
 
+  console.log(hasPlayed);
   return (
-    <div className="min-h-screen w-full bg-[#0B0B14] py-4 px-4 md:py-6">
+    <div className="min-h-screen w-full  bg-[#0B0B14] py-4 px-4 md:py-6">
       <div className="max-w-xl mx-auto">
         <div className="bg-[#151524] rounded-[28px] p-6 shadow-[0_0_30px_rgba(76,111,255,0.1)]">
           <h2 className="text-2xl mt-10 font-bold text-center text-white mb-1">
             Spin The Wheel
           </h2>
-          <p className="mb-8 text-sm text-center text-[#6C5CE7]">
-            {" "}
+          <p className="mb-4 text-sm text-center text-[#6C5CE7]">
             You need to have made atleast a deposit before playing
+          </p>
+          <p className="mb-8 text-sm text-center text-[#6C5CE7]">
+            Spins Left:{" "}
+            {new Date(cooldownTime) > new Date(Date.now())
+              ? user?.dailySpinCount
+              : 2}
           </p>
 
           {/* Wheel Container */}
@@ -396,25 +416,7 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
 
           {/* Controls */}
           <div className="space-y-4">
-            {hasPlayed && cooldownTime > Date.now() ? (
-              <div className="bg-[#1A1A2F] rounded-xl p-4 border border-[#2A2A45]">
-                <CountdownTimer targetTime={cooldownTime} />
-              </div>
-            ) : (
-              <button
-                onClick={handleSpinClick}
-                disabled={hasPlayed || mustSpin}
-                className="w-full py-4 bg-gradient-to-r from-[#4C6FFF] to-[#6C5CE7] text-white text-lg font-bold rounded-xl
-                         hover:opacity-90 transition-all duration-300
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-all duration-1000"></div>
-                <span className="relative">SPIN</span>
-              </button>
-            )}
-
-            {(winner || unclaimed) && !isClaimed && (
+            {(winner || unclaimed) && !isClaimed ? (
               <div className="mt-6 text-center">
                 <div className="bg-[#1A1A2F] rounded-xl p-6 border border-[#2A2A45] relative overflow-hidden">
                   <div className="absolute inset-0 bg-[#4C6FFF] blur-2xl opacity-5"></div>
@@ -441,17 +443,62 @@ export const WheelOfFortune = ({ user }: { user: any }) => {
                   </div>
                 </div>
               </div>
+            ) : (
+              <div>
+                {hasPlayed && new Date(cooldownTime) > new Date(Date.now()) ? (
+                  <div className="bg-[#1A1A2F] rounded-xl p-4 border border-[#2A2A45]">
+                    <CountdownTimer targetTime={cooldownTime} />
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSpinClick}
+                    disabled={
+                      (hasPlayed &&
+                        new Date(cooldownTime) > new Date(Date.now())) ||
+                      mustSpin
+                    }
+                    className="w-full py-4 bg-gradient-to-r from-[#4C6FFF] to-[#6C5CE7] text-white text-lg font-bold rounded-xl
+                         hover:opacity-90 transition-all duration-300
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-all duration-1000"></div>
+                    <span className="relative">SPIN</span>
+                  </button>
+                )}
+              </div>
             )}
 
             {isClaimed && (
-              <div className="mt-6 text-center text-[#2ECC71] font-bold">
-                Reward claimed successfully!
+              <div>
+                <div className="mt-6 text-3xl text-center text-[#2ECC71] font-bold">
+                  Reward claimed successfully!
+                </div>
               </div>
+            )}
+            {user.dailySpinCount <= 0 &&
+              new Date(cooldownTime) > new Date(Date.now()) && (
+                <button
+                  onClick={() => setBuySpins(true)}
+                  className="w-full py-4 bg-gradient-to-r from-[#4C6FFF] to-[#6C5CE7] text-white text-lg font-bold rounded-xl
+                         hover:opacity-90 transition-all duration-300
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-all duration-1000"></div>
+                  <span className="relative">BUY SPIN</span>
+                </button>
+              )}
+            {buySpins && (
+              <BuySpin
+                user={user}
+                claimPoints={claimPoints}
+                setBuySpins={setBuySpins}
+              />
             )}
           </div>
         </div>
       </div>
-      {/* <BuySpin user={user} /> */}
       <ToastContainer
         position="bottom-right"
         autoClose={5000}

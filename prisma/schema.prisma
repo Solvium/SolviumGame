@@ -18,27 +18,30 @@ model Task {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  username      String        @unique
-  name          String?
-  wallet        String?       @unique
-  referredBy    String
-  chain         String?
-  level         Int           @default(1)
-  difficulty    Int           @default(1)
-  puzzleCount   Int           @default(1)
-  referralCount Int           @default(0)
-  chatId        String?
-  spinCount     Int           @default(0)
-  claimCount    Int           @default(0)
-  totalPoints   Int           @default(0)
-  isOfficial    Boolean       @default(false)
-  isMining      Boolean       @default(false)
-  isPremium     Boolean       @default(false)
-  lastClaim     DateTime      @default(now())
-  UserTasks     UserTask[]
-  weeklyPoints  Int           @default(0)
-  WeeklyScores  WeeklyScore[]
+  id             Int           @id @default(autoincrement())
+  username       String        @unique
+  name           String?
+  wallet         String?       @unique
+  email          String?       @unique
+  referredBy     String
+  chain          String?
+  level          Int           @default(1)
+  difficulty     Int           @default(1)
+  puzzleCount    Int           @default(1)
+  referralCount  Int           @default(0)
+  chatId         String?
+  spinCount      Int           @default(0)
+  dailySpinCount Int           @default(0)
+  claimCount     Int           @default(0)
+  lastSpinClaim  DateTime      @default(now())
+  totalPoints    Int           @default(0)
+  isOfficial     Boolean       @default(false)
+  isMining       Boolean       @default(false)
+  isPremium      Boolean       @default(false)
+  lastClaim      DateTime      @default(now())
+  UserTasks      UserTask[]
+  weeklyPoints   Int           @default(0)
+  WeeklyScores   WeeklyScore[]
 }
 
 model WeeklyScore {

@@ -10,8 +10,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Solvuim Task Bot",
-  description: "Earn with Solvuim Tasks on NEAR Blockchain",
+  title: "Solvium Task Bot",
+  description: "Earn with Solvium Tasks on NEAR Blockchain",
 };
 
 export default function RootLayout({
